@@ -75,6 +75,8 @@ venv\Scripts\Activate.ps1
 pip install -r requirements.txt -r research-agent/requirements.txt -r content-transform-agent/requirements.txt
 ```
 
+OR
+
 **With uv**
 
 bash:
