@@ -1,0 +1,4 @@
+[submodule "content-transform-agent"]
+	path = content-transform-agent
+	url = https://github.com/paulogabe1/content-transform-agent.git
+	branch = main
