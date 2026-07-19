@@ -38,19 +38,20 @@ python --version
 Two options:
 
 1. **Install a matching version directly** (e.g. 3.12) from [python.org](https://www.python.org/downloads/), then point the venv at it explicitly in step 4.
+OR
 2. **Use [uv](https://astral.sh/uv/)** to install an isolated Python version without touching your system install:
 
-**bash**
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-uv python install 3.12
-```
+    **bash**
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    uv python install 3.12
+    ```
 
-**PowerShell**
-```powershell
-irm https://astral.sh/uv/install.ps1 | iex
-uv python install 3.12
-```
+    **PowerShell**
+    ```powershell
+    irm https://astral.sh/uv/install.ps1 | iex
+    uv python install 3.12
+    ```
 
 ### 4. Create the venv and install dependencies
 
