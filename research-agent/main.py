@@ -3,18 +3,35 @@ CLI entry point: run the research crew on a topic.
 
 Usage:
     python main.py "workload identity AI agent security"
+    python main.py --verbose "workload identity AI agent security"
 
-Writes the raw research and finding to findings.md, and saves the
-structured finding to Supabase (requires schema.sql to have been run
-once, and SUPABASE_URL/SUPABASE_KEY set in .env).
+Writes the raw research and finding to raw_research.md, and saves the
+structured finding to Supabase if SUPABASE_URL/SUPABASE_KEY are set in
+.env (requires schema.sql to have been run once), or to a local
+findings.json file otherwise.
 """
-import sys
+import argparse
 from pathlib import Path
+from typing import cast
 
 from dotenv import load_dotenv
 
-from research_agents import build_crew
+from research_agents import build_crew, Finding
 from db import save_finding
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run the research crew on a topic.")
+    parser.add_argument("topic", help="Topic to research")
+    parser.add_argument(
+        "--verbose", dest="verbose", action="store_true", default=False,
+        help="Print agent/task progress as it runs",
+    )
+    parser.add_argument(
+        "--quiet", dest="verbose", action="store_false",
+        help="Suppress agent/task progress output (default)",
+    )
+    return parser.parse_args()
 
 
 def main():
@@ -25,13 +42,9 @@ def main():
     load_dotenv(Path(__file__).parent.parent / ".env")
     load_dotenv(override=True)
 
-    if len(sys.argv) != 2:
-        print('Usage: python main.py "<topic to research>"')
-        sys.exit(1)
+    args = parse_args()
 
-    topic = sys.argv[1]
-
-    crew = build_crew(topic)
+    crew = build_crew(args.topic, verbose=args.verbose)
     result = crew.kickoff()
 
     # Same thing that came up with content-transform-agent: str(result)
@@ -43,7 +56,7 @@ def main():
         f"## Raw Research\n\n{research_output.raw}",
         f"## Finding\n\n{synthesize_output.raw}",
     ]
-    output_path = Path("findings.md")
+    output_path = Path("raw_research.md")
     output_path.write_text("\n\n---\n\n".join(sections), encoding="utf-8")
     print(f"Wrote {output_path}")
 
@@ -51,20 +64,18 @@ def main():
     # built with output_pydantic=Finding. It's the same result as
     # .raw, just already validated and structured instead of needing
     # to be parsed back apart.
-    finding = synthesize_output.pydantic
-    if finding is None:
+    if synthesize_output.pydantic is None:
         print("Warning: no structured finding was returned. Skipping Supabase save.")
         return
+    finding = cast(Finding, synthesize_output.pydantic)
 
     if not finding.found:
         print(f"No specific finding this run: {finding.why_it_matters}")
         return
 
-    try:
-        saved_row = save_finding(finding, topic)
-        print(f"Saved to Supabase: {saved_row.get('id', '(no id returned)')}")
-    except ValueError as e:
-        print(f"Skipped Supabase save: {e}")
+    saved_row, backend = save_finding(finding, args.topic)
+    destination = "Supabase" if backend == "supabase" else "local findings.json"
+    print(f"Saved to {destination}: {saved_row.get('id', '(no id returned)')}")
 
 
 if __name__ == "__main__":

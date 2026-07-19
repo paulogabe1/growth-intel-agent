@@ -1,3 +1,4 @@
 .env
 __pycache__/
-findings.md
+raw_research.md
+findings.json

@@ -1,16 +1,29 @@
 """
-Persistence layer for findings. Uses Supabase instead of a local file
-so results accumulate across multiple runs instead of one run's
-output overwriting the last one.
+Persistence layer for findings. Uses Supabase when SUPABASE_URL and
+SUPABASE_KEY are set, so results accumulate across runs in one shared
+place other tools (like bridge.py) can read from too. Falls back to a
+local findings.json file when they aren't set, or when a Supabase call
+actually fails (bad credentials, unreachable, etc.) -- presence of the
+env vars only means Supabase is configured, not that it's reachable.
 
 Run schema.sql in the Supabase project's SQL editor once before using
-this. It expects a `findings` table matching that schema.
+Supabase. It expects a `findings` table matching that schema.
 """
+import json
 import os
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import cast
 
 from supabase import create_client, Client
 
 from research_agents import Finding
+
+LOCAL_DB_PATH = Path(__file__).parent / "findings.json"
+
+
+def is_supabase_configured() -> bool:
+    return bool(os.getenv("SUPABASE_URL") and os.getenv("SUPABASE_KEY"))
 
 
 def get_client() -> Client:
@@ -24,9 +37,8 @@ def get_client() -> Client:
     return create_client(url, key)
 
 
-def save_finding(finding: Finding, topic: str) -> dict:
-    client = get_client()
-    row = {
+def _row_for(finding: Finding, topic: str) -> dict:
+    return {
         "topic": topic,
         "found": finding.found,
         "headline": finding.headline,
@@ -34,5 +46,60 @@ def save_finding(finding: Finding, topic: str) -> dict:
         "why_it_matters": finding.why_it_matters,
         "source_url": finding.source_url,
     }
-    response = client.table("findings").insert(row).execute()
-    return response.data[0] if response.data else {}
+
+
+def _read_local() -> list[dict]:
+    if not LOCAL_DB_PATH.exists():
+        return []
+    return json.loads(LOCAL_DB_PATH.read_text(encoding="utf-8"))
+
+
+def _save_local(row: dict) -> dict:
+    records = _read_local()
+    row = {
+        **row,
+        "id": len(records) + 1,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    records.append(row)
+    LOCAL_DB_PATH.write_text(json.dumps(records, indent=2), encoding="utf-8")
+    return row
+
+
+def save_finding(finding: Finding, topic: str) -> tuple[dict, str]:
+    """Returns (row, backend), where backend is 'supabase' or 'local'."""
+    row = _row_for(finding, topic)
+    if is_supabase_configured():
+        try:
+            client = get_client()
+            response = client.table("findings").insert(row).execute()
+            saved = cast(dict, response.data[0]) if response.data else {}
+            return saved, "supabase"
+        except Exception as e:
+            # Broad on purpose: a bad URL, bad key, and a network
+            # outage all raise different exception types from
+            # supabase-py/httpx, and all of them should fall back the
+            # same way rather than crash the whole run.
+            print(f"Supabase save failed ({e}); falling back to local findings.json")
+    return _save_local(row), "local"
+
+
+def get_latest_finding() -> dict | None:
+    """Most recent finding with found=True, from wherever it was saved."""
+    if is_supabase_configured():
+        try:
+            client = get_client()
+            response = (
+                client.table("findings")
+                .select("*")
+                .eq("found", True)
+                .order("created_at", desc=True)
+                .limit(1)
+                .execute()
+            )
+            return cast(dict, response.data[0]) if response.data else None
+        except Exception as e:
+            print(f"Supabase read failed ({e}); falling back to local findings.json")
+
+    matches = [r for r in _read_local() if r.get("found")]
+    return matches[-1] if matches else None

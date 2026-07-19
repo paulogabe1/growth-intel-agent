@@ -52,7 +52,7 @@ def build_llm() -> LLM:
     return LLM(model=model, temperature=0.4, timeout=60, max_retries=5)
 
 
-def build_agents(llm: LLM):
+def build_agents(llm: LLM, verbose: bool = True):
     researcher = Agent(
         role="Market Researcher",
         goal=(
@@ -66,7 +66,7 @@ def build_agents(llm: LLM):
         ),
         tools=[DuckDuckGoSearchTool()],
         llm=llm,
-        verbose=True,
+        verbose=verbose,
     )
 
     analyst = Agent(
@@ -82,7 +82,7 @@ def build_agents(llm: LLM):
             "know about it."
         ),
         llm=llm,
-        verbose=True,
+        verbose=verbose,
     )
 
     return researcher, analyst
@@ -138,13 +138,13 @@ def build_tasks(researcher: Agent, analyst: Agent, topic: str):
     return [research, synthesize]
 
 
-def build_crew(topic: str) -> Crew:
+def build_crew(topic: str, verbose: bool = True) -> Crew:
     llm = build_llm()
-    researcher, analyst = build_agents(llm)
+    researcher, analyst = build_agents(llm, verbose=verbose)
     tasks = build_tasks(researcher, analyst, topic)
     return Crew(
         agents=[researcher, analyst],
         tasks=tasks,
         process=Process.sequential,
-        verbose=True,
+        verbose=verbose,
     )
