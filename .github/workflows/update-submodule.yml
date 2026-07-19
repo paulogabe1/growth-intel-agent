@@ -1,0 +1,34 @@
+name: Update content-transform-agent submodule
+
+# Runs on a schedule so this repo's submodule reference stays current
+# with content-transform-agent's own main branch, without needing a
+# manual git submodule update every time something changes over there.
+# Also runnable by hand from the Actions tab (workflow_dispatch), for
+# whenever an update is wanted immediately instead of waiting for the
+# next scheduled run.
+
+"on":
+  schedule:
+    - cron: "0 6 * * *"  # daily at 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  update-submodule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out this repo with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull the latest commit from content-transform-agent's main branch
+        run: git submodule update --remote --merge
+
+      - name: Commit and push only if the submodule actually changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add content-transform-agent
+          git diff --staged --quiet || git commit -m "Auto-update content-transform-agent submodule"
+          git diff --staged --quiet || git push

@@ -1,0 +1,4 @@
+crewai[litellm]>=1.0.0
+python-dotenv>=1.0
+ddgs>=9.0
+supabase>=2.0
