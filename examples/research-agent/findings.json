@@ -1,0 +1,52 @@
+[
+  {
+    "topic": "workload identity AI agent security",
+    "found": true,
+    "headline": "AI agents require workload identity for secure authentication and authorization",
+    "category": "industry trend",
+    "why_it_matters": "The rise of agentic workloads has created a need for secure authentication and authorization of AI agents, and workload identity is essential for addressing this challenge. Traditional security methods are no longer sufficient, and companies are now adopting workload identity solutions to ensure the security and integrity of their AI systems.",
+    "source_url": "https://securityboulevard.com/2026/07/secure-agentic-access-authentication-and-authorization-for-ai-agent-workloads/",
+    "id": 1,
+    "created_at": "2026-07-19T22:04:09.101058+00:00"
+  },
+  {
+    "topic": "workload identity AI agent security",
+    "found": true,
+    "headline": "Workload identity is essential for AI agent security, as it provides a foundation for strong identity security in modern machine-driven environments",
+    "category": "industry trend",
+    "why_it_matters": "The increasing use of AI agents in various industries has created a new attack surface, and securing their identities is crucial to prevent cyber threats. Workload identity provides a way to authenticate and authorize AI agents, ensuring that they can access only the necessary resources and data.",
+    "source_url": "https://www.cyberark.com/resources/blog/secrets-out-why-workload-identity-is-essential-for-ai-agent-security",
+    "id": 2,
+    "created_at": "2026-07-19T22:33:56.653181+00:00"
+  },
+  {
+    "topic": "workload identity AI agent security",
+    "found": true,
+    "headline": "Cisco Reimagines Security for the Agentic Workforce",
+    "category": "industry trend",
+    "why_it_matters": "The rise of agentic workloads poses new security challenges, and companies like Cisco are responding by extending Zero Trust Access to AI agents, highlighting the need for identity controls and runtime enforcement in AI security.",
+    "source_url": "https://newsroom.cisco.com/c/r/newsroom/en/us/a/y2026/m03/cisco-reimagines-security-for-the-agentic-workforce.html",
+    "id": 3,
+    "created_at": "2026-07-20T03:36:48.251504+00:00"
+  },
+  {
+    "topic": "workload identity AI agent security",
+    "found": true,
+    "headline": "AI Agents Pose Significant Identity and Authentication Challenges for Organizations",
+    "category": "industry trend",
+    "why_it_matters": "The growing use of AI agents in organizations has created a new security challenge, as traditional identity and authentication methods are not suitable for these autonomous systems, and new solutions are needed to ensure their secure authentication and authorization. The lack of proper identity and authentication mechanisms for AI agents can lead to security risks and breaches.",
+    "source_url": "https://securityboulevard.com/2026/07/secure-agentic-access-authentication-and-authorization-for-ai-agent-workloads/",
+    "id": 4,
+    "created_at": "2026-07-20T03:40:45.769504+00:00"
+  },
+  {
+    "topic": "workload identity AI agent security",
+    "found": true,
+    "headline": "AI Agents Require Workload Identity for Enhanced Security",
+    "category": "industry trend",
+    "why_it_matters": "The increasing use of AI agents in various industries has created a need for workload identity to ensure secure authentication and authorization, as static secrets are no longer sufficient. This trend is essential for organizations to protect their sensitive data and prevent security incidents.",
+    "source_url": "https://nhimg.org/community/agentic-ai-and-nhis/why-ai-agents-need-workload-identity-the-end-of-secrets-in-ai-security/",
+    "id": 5,
+    "created_at": "2026-07-20T04:31:00.279912+00:00"
+  }
+]
