@@ -1,20 +1,12 @@
 """
-A custom web search tool using DuckDuckGo, via the `ddgs` package.
+Web search via DuckDuckGo (the `ddgs` package), instead of CrewAI's
+built-in tools (Serper, Tavily, Brave, EXA), which all need their own
+signup and API key. DuckDuckGo needs neither.
 
-Every search tool CrewAI ships with (SerperDevTool,
-TavilySearchTool, BraveSearchTool, EXASearchTool) needs its own signup
-and API key. DuckDuckGo needs neither, which keeps things consistent
-with the rest of this stack (Groq, youtube-transcript-api) which
-means fewer accounts and quotas to manage.
-
-Two potential concerns:
-  - It's an unofficial library scraping DuckDuckGo's own site, not a
-    sanctioned API, so it can break if DuckDuckGo changes something.
-    Same category of risk as youtube-transcript-api.
-  - DuckDuckGo has no published rate limit, but community reports
-    describe bot detection kicking in well before 30 requests per
-    minute from one IP. Fine for occasional research queries, not
-    something to use in a tight loop.
+Tradeoff: it's an unofficial library scraping DuckDuckGo's site, not a
+sanctioned API, so it can break if they change something, and bot
+detection reportedly kicks in around 30 requests/minute from one IP.
+Fine for occasional queries, not a tight loop.
 """
 from ddgs import DDGS
 from crewai.tools import BaseTool

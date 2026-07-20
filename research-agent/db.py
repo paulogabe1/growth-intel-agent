@@ -1,10 +1,6 @@
 """
-Persistence layer for findings. Uses Supabase when SUPABASE_URL and
-SUPABASE_KEY are set, so results accumulate across runs in one shared
-place other tools (like bridge.py) can read from too. Falls back to a
-local findings.json file when they aren't set, or when a Supabase call
-actually fails (bad credentials, unreachable, etc.) -- presence of the
-env vars only means Supabase is configured, not that it's reachable.
+Persistence layer for findings. Uses Supabase when configured and
+reachable, else falls back to a local findings.json file.
 
 Run schema.sql in the Supabase project's SQL editor once before using
 Supabase. It expects a `findings` table matching that schema.
@@ -76,10 +72,7 @@ def save_finding(finding: Finding, topic: str) -> tuple[dict, str]:
             saved = cast(dict, response.data[0]) if response.data else {}
             return saved, "supabase"
         except Exception as e:
-            # Broad on purpose: a bad URL, bad key, and a network
-            # outage all raise different exception types from
-            # supabase-py/httpx, and all of them should fall back the
-            # same way rather than crash the whole run.
+            # Broad on purpose: any failure here should fall back, not crash.
             print(f"Supabase save failed ({e}); falling back to local findings.json")
     return _save_local(row), "local"
 

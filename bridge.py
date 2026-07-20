@@ -1,23 +1,13 @@
 """
-Phase 3: bridges research_agent and content-transform-agent together.
+Phase 3: bridges research_agent and content-transform-agent.
 
-Runs the research crew on a topic. If it surfaces a real finding
-(found=True, saved to Supabase if configured or a local findings.json
-otherwise), that finding gets fed straight into content-transform-agent's
-existing pipeline to produce a blog draft plus social posts from it.
-Turns "something worth writing about was found" into an actual draft,
-automatically.
+Runs the research crew on a topic, then feeds any real finding into
+content-transform-agent to produce a blog draft and social posts.
 
-This deliberately does NOT merge the two projects' internals or import
-across them. content-transform-agent is included as a git submodule
-(see README), not duplicated as plain copied files, so there's still
-only one real source of truth for its code even though it's nested
-inside this repo. Each keeps running exactly the way it did standalone
-(own main.py, own dependencies, own .env). This script just calls
-each one's existing CLI as a subprocess and hands data between them
-via Supabase and a small temp file. That's the same shape as the n8n
-workflow from earlier: call one thing, take its result, feed it to
-the next thing, just in Python instead of a visual canvas.
+Doesn't import either project's code -- just calls each one's CLI as
+a subprocess and passes data through Supabase/findings.json and a temp
+file. Keeps both fully independent, same shape as the n8n workflow:
+call one thing, take the result, feed it to the next.
 
 Usage:
     python bridge.py "workload identity AI agent security"
@@ -66,12 +56,9 @@ def run_research(topic: str, verbose: bool) -> None:
 
 def get_latest_finding() -> dict | None:
     """
-    Reads the most recent finding straight from wherever research_agent
-    saved it: Supabase if SUPABASE_URL/SUPABASE_KEY are set and reachable,
-    otherwise the local findings.json file research_agent falls back to.
-    Reads the data directly rather than importing research_agent's db
-    module -- the two projects only ever talk through data, never
-    through shared code.
+    Reads the latest finding from Supabase if reachable, else the local
+    findings.json fallback -- a direct data read, not an import, same
+    as everywhere else in this script.
     """
     url = os.getenv("SUPABASE_URL")
     key = os.getenv("SUPABASE_KEY")
@@ -89,9 +76,7 @@ def get_latest_finding() -> dict | None:
             )
             return response.data[0] if response.data else None
         except Exception as e:
-            # Broad on purpose: bad URL, bad key, and a network outage
-            # all raise different exception types, and all of them
-            # should fall back the same way rather than crash the run.
+            # Broad on purpose: any failure here should fall back, not crash.
             print(f"Supabase read failed ({e}); falling back to local findings.json")
 
     local_db = RESEARCH_DIR / "findings.json"
@@ -103,12 +88,9 @@ def get_latest_finding() -> dict | None:
 
 
 def run_content_agent(source_text: str, verbose: bool) -> None:
-    """
-    content-transform-agent's CLI takes a file path or YouTube URL, not raw
-    text directly. So the finding gets written to a small temp file
-    first, matching how it's actually meant to be called, and cleaned
-    up afterward since it was only ever meant to be transient.
-    """
+    """content-transform-agent's CLI wants a file path or URL, not raw
+    text, so we write the finding to a temp file first and clean it up
+    after."""
     temp_input = CONTENT_DIR / "sample_input" / "_bridge_input.txt"
     temp_input.write_text(source_text, encoding="utf-8")
 

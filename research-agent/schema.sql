@@ -1,5 +1,5 @@
--- Run this in the Supabase project's SQL Editor before using db.py.
--- (Dashboard, then SQL Editor, then New query, paste this in, and Run)
+-- Run in Supabase's SQL Editor before using db.py
+-- (Dashboard > SQL Editor > New query > Run)
 
 create table if not exists findings (
     id uuid primary key default gen_random_uuid(),
@@ -12,7 +12,5 @@ create table if not exists findings (
     created_at timestamptz not null default now()
 );
 
--- RLS is skipped here on purpose. This is a single-user internal tool,
--- not something end users hit directly. A version of this exposed to
--- multiple people, or through a public API, would want row-level
--- security enabled, scoping rows to whoever created them.
+-- RLS skipped on purpose -- single-user internal tool. A public-facing
+-- version would want row-level security scoping rows per user.

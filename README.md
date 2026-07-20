@@ -114,3 +114,19 @@ Runs quietly by default (both subprocesses). Add `--verbose` (before or after th
 `bridge.py` runs both projects in sequence, so both sets of outputs get written:
 - research-agent's `raw_research.md` and `findings.json` — see `research-agent/README.md`
 - content-transform-agent's `output.md` (the blog draft + social posts) — see `content-transform-agent/README.md`
+
+## Running it as an API
+
+`api.py` wraps `bridge.py` in FastAPI, so something other than a terminal can trigger a run:
+
+```bash
+uvicorn api:app --reload --port 8001
+```
+
+`POST /research` with `{"topic": "..."}` runs the same research → content pipeline as the CLI and returns the finding plus the generated draft as JSON. Same underlying calls as `bridge.py` — no duplicated logic, `api.py` just imports and calls its functions directly.
+
+## The no-code layer
+
+`n8n/workflow.json` — a webhook receives a topic, calls `/research` above, and returns the draft. Same shape as content-transform-agent's own n8n workflow (webhook → HTTP Request → respond), just one level up: this one watches a topic instead of processing a document someone hands it.
+
+![n8n workflow executing successfully, all three nodes green](n8n/execution.mp4)

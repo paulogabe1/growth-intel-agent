@@ -1,16 +1,10 @@
 """
-Phase 1 of the research/competitive-intel agent. One agent searches
-the web for recent developments on a topic or company, and a second
-agent turns those raw results into a structured finding with a
-category and a single line "why this matters" note.
+Two-agent research crew: one searches the web for recent developments
+on a topic, the other turns the results into one structured finding.
 
-This deliberately uses the same structure as the content-transform-agent
-(build_llm / build_agents / build_tasks / build_crew), carrying over
-the same modifs: the cache_breakpoint patch, timeout and retries 
-on the LLM, UTF-8 everywhere. This will eventually bridge
-into content-transform-agent (a flagged finding becomes the
-source_text for that pipeline), but for now it's self-contained and
-independently testable.
+Same shape as content-transform-agent (build_llm/build_agents/
+build_tasks/build_crew), and carries over the same fixes: the
+cache_breakpoint patch, LLM timeout/retries, UTF-8 everywhere.
 """
 import os
 from typing import Literal
@@ -18,10 +12,8 @@ from typing import Literal
 from pydantic import BaseModel
 from crewai import Agent, Task, Crew, Process, LLM
 
-# Same known CrewAI bug as content-transform-agent (issue #5886).
-# See that project's agents.py for the full explanation. Safe to
-# delete once https://github.com/crewAIInc/crewAI/issues/5886 is
-# fixed upstream.
+# Same CrewAI bug as content-transform-agent (crewAIInc/crewAI#5886),
+# patched here too. Safe to remove once fixed upstream.
 import crewai.llms.cache as _crewai_cache
 
 _crewai_cache.mark_cache_breakpoint = lambda msg: msg
@@ -31,13 +23,10 @@ from search_tool import DuckDuckGoSearchTool
 
 class Finding(BaseModel):
     """
-    Structured output for the synthesize task, so a finding can go
-    straight into a database (Supabase) row instead of getting converted from
-    free-form text later. The `found` field exists specifically
-    to force the model to declare if it found nothing worth reporting.
-    Without it, the model would be forced to invent a
-    finding even when the research came back empty or too generic,
-    since every field is technically required.
+    Structured output for the synthesize task -- goes straight into a
+    db row, no parsing needed. `found` exists so the model can admit
+    it found nothing instead of inventing something to fill required
+    fields.
     """
 
     found: bool
@@ -89,13 +78,9 @@ def build_agents(llm: LLM, verbose: bool = True):
 
 
 def build_tasks(researcher: Agent, analyst: Agent, topic: str):
-    """
-    Defining the research tasks
-    'Do not invent results if seatch comes back empty' because
-    the agent could produce a plausible answer even when the tool
-    returned nothing useful. Better to specify this upfront than debug
-    confidently wrong outputs later.
-    """
+    """Tells the agent not to invent results when search comes back
+    empty -- easier to say upfront than debug a confidently wrong
+    answer later."""
     research = Task(
         description=(
             f"Search for recent news, announcements, or developments "
