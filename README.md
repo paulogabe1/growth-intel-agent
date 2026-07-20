@@ -129,4 +129,4 @@ uvicorn api:app --reload --port 8001
 
 `n8n/workflow.json` — a webhook receives a topic, calls `/research` above, and returns the draft. Same shape as content-transform-agent's own n8n workflow (webhook → HTTP Request → respond), just one level up: this one watches a topic instead of processing a document someone hands it.
 
-[![Watch the demo](https://img.youtube.com/vi/X70cerdsIbg/0.jpg)](https://youtu.be/X70cerdsIbg)
+[![Watch the demo](https://img.youtube.com/vi/4ZIysFKT1OM/0.jpg)](https://youtu.be/4ZIysFKT1OM)
